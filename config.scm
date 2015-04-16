@@ -27,14 +27,22 @@
 				   "init=/usr/lib/systemd/systemd"))
 		 (initrd "/initramfs-gentoo")
 		 )))))
+;; (logical-volume-groups "venom")
+ (mapped-devices
+  (list
+   (mapped-device
+    (source "")
+    (target "venom")
+    (type lvm-mapping))))
+ 
  (file-systems (append (list (file-system
 			      (device "/dev/sda3") ; or partition label
 			      (mount-point "/")
 			      (type "ext4"))
-;;			     (file-system
-;;			      (device "/dev/venom/home")
-;;			      (mount-point "/home")
-;;			      (type "ext4"))
+			     (file-system
+			      (device "/dev/venom/home")
+			      (mount-point "/home")
+			      (type "ext4"))
 			     )
 		     %base-file-systems))
  (swap-devices '("/dev/sda2"))
@@ -92,8 +100,7 @@
     (lsh-service #:port-number 22 #:root-login? #t #:initialize? #t)
     (slim-service #:default-user "tcech" #:auto-login? #t)
     (wicd-service)
-    (avahi-service)
-    (dbus-service (list avahi wicd connman))
+    (dbus-service (list wpa-supplicant wicd connman))
     (mingetty-service "ttyS0"
 		      #:motd (text-file "motd" "
 This is the GNU operating system, welcome!\n\n")))
