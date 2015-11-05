@@ -1,4 +1,5 @@
 (use-modules (gnu)
+	     (gnu system)
 	     (guix store))
 (use-package-modules
  ;; my private packages
@@ -20,14 +21,14 @@
 	      (menu-entries
 	       (list
 		(menu-entry
-		 (label "Gentoo")
-		 (linux "/vmlinuz-gentoo")
+		 (label "openSUSE")
+		 (linux "/vmlinuz")
 		 (linux-arguments (list
-				   "root=/dev/venom/gentoo"
+				   "root=/dev/venom/opensuse"
 				   "init=/usr/lib/systemd/systemd"))
-		 (initrd "/initramfs-gentoo")
+		 (initrd "/initrd")
 		 )))))
-;; (logical-volume-groups "venom")
+ ;; (logical-volume-groups "venom")
  (mapped-devices
   (list
    (mapped-device
@@ -38,11 +39,23 @@
  (file-systems (append (list (file-system
 			      (device "/dev/sda3") ; or partition label
 			      (mount-point "/")
-			      (type "ext4"))
+			      (type "ext4")
+			      (needed-for-boot? #t))
 			     (file-system
 			      (device "/dev/venom/home")
 			      (mount-point "/home")
-			      (type "ext4"))
+			      (type "ext4")
+      			      (needed-for-boot? #t))
+			     (file-system
+			      (device "/dev/venom/devel")
+			      (mount-point "/Devel")
+			      (type "ext4")
+			      (needed-for-boot? #t))
+			     (file-system
+			      (device "/dev/venom/opensuse")
+			      (mount-point "/opensuse")
+			      (type "ext4")
+			      (needed-for-boot? #t))
 			     )
 		     %base-file-systems))
  (swap-devices '("/dev/sda2"))
@@ -64,34 +77,38 @@
     vpnc openconnect openssl lsh
     
     ;; minimal Xorg
-    slim xrandr xterm my-dwm slock
+    ;; slim xrandr xterm my-dwm slock
     
     ;; mail
-    mutt mu gnutls
+    mutt mu gnutls isync
 
     ;; web
-    icecat wget curl
+    ;; icecat
+    wget curl
     
     ;; enlightenment
-    terminology enlightenment
+    ;; terminology enlightenment
 
     ;; xfce
-    xfce
+    ;; xfce
 
     ;; other X stuff
-    synergy
+    ;; synergy
     ;; multimedia
-    mplayer mplayer2 vlc
+    ;; mplayer mplayer2 vlc
     ;; mpv
+
     ;; development
     git magit subversion cvs rcs quilt patchutils patch gcc-toolchain-4.9 gnu-make
     automake autoconf gdb
     strace ltrace
+    the-silver-searcher
+    global
 
     ;; console
     htop mc
     ;; not packaged yet
-    ;; isync cmus cscope ctags the-silver-searcher
+    ;; cmus cscope ctags
     )
    %base-packages))
  (services
@@ -107,5 +124,3 @@ This is the GNU operating system, welcome!\n\n")))
    %base-services))
  (kernel linux-vanilla)
  )
-
-
