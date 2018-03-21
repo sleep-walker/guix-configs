@@ -1,97 +1,97 @@
 (use-modules (gnu)
 	     (gnu system)
+             (gnu system linux-initrd)
 	     (guix store))
+
 (use-package-modules
  ;; my private packages
- my-own linux-vanilla
+ ;;my-own
+ wm
+ linux-vanilla
+ bootloaders
  ;; generic guix packages modules
- admin autotools avahi base bash commencement cryptsetup connman curl
- emacs enlightenment gdb glib gnutls gnuzilla grub links linux lsh mail
- mc patchutils slim synergy texinfo version-control video wget wicd
- xfce xorg dwm avahi ssh xorg vpn openssl)
+ certs
+ admin autotools avahi base bash code commencement cryptsetup connman
+ curl emacs enlightenment gdb glib tls gnuzilla gnome
+ ;;grub
+ ;;links
+ web-browsers
+ linux ssh
+ mail mc patchutils
+ display-managers
+ synergy texinfo version-control video wget
+ xfce xorg suckless avahi xorg vpn)
 (use-service-modules
- avahi base dbus networking ssh xorg)
+ avahi base networking ssh xorg desktop)
+
 
 (operating-system
- (host-name "venom")
+ (host-name "doom")
  (timezone "Europe/Prague")
  (locale "cs_CZ.utf8")
- (bootloader (grub-configuration
-	      (device "/dev/sda")
-	      (menu-entries
-	       (list
-		(menu-entry
-		 (label "openSUSE")
-		 (linux "/vmlinuz")
-		 (linux-arguments (list
-				   "root=/dev/venom/opensuse"
-				   "init=/usr/lib/systemd/systemd"))
-		 (initrd "/initrd")
-		 )))))
- ;; (logical-volume-groups "venom")
- (mapped-devices
-  (list
-   (mapped-device
-    (source "")
-    (target "venom")
-    (type lvm-mapping))))
- 
- (file-systems (append (list (file-system
-			      (device "/dev/sda3") ; or partition label
-			      (mount-point "/")
-			      (type "ext4")
-			      (needed-for-boot? #t))
-			     (file-system
-			      (device "/dev/venom/home")
-			      (mount-point "/home")
-			      (type "ext4")
-      			      (needed-for-boot? #t))
-			     (file-system
-			      (device "/dev/venom/devel")
-			      (mount-point "/Devel")
-			      (type "ext4")
-			      (needed-for-boot? #t))
-			     (file-system
-			      (device "/dev/venom/opensuse")
-			      (mount-point "/opensuse")
-			      (type "ext4")
-			      (needed-for-boot? #t))
-			     )
+;; prepare configuration but don't install bootloader
+ (bootloader
+  (bootloader-configuration
+   (bootloader
+    (bootloader
+     (inherit grub-bootloader) (installer #~(const #t))))))
+  (mapped-devices
+   (list (mapped-device
+          (source (uuid "0455fc07-8df6-4752-aa9b-70a04c573568"))
+          (target "guix-root")
+          (type luks-device-mapping))))
+
+  (file-systems (append (list (file-system
+                               (title 'device)
+                               (device "/dev/mapper/guix-root")
+                               (mount-point "/")
+                               (type "ext4")
+                               (dependencies mapped-devices)
+                               (needed-for-boot? #t)))
 		     %base-file-systems))
- (swap-devices '("/dev/sda2"))
- (users (list (user-account
+;; (swap-devices '("/dev/sda2"))
+ (users (cons (user-account
 	       (name "tcech")
 	       (uid 1000) (group "users")
-	       (comment "Tomas Cech")
+               (supplementary-groups '("wheel" "netdev"
+                                       "audio" "video"))
+	       (comment "Tomáš Čech")
 	       (password "password")
-	       (home-directory "/home/tcech"))))
+	       (home-directory "/home/tcech"))
+              %base-user-accounts))
+
  (packages
   (append
    (list
+    nss-certs
     ;; absolutely necessary
     emacs lvm2 bash texinfo
     grub nss-mdns procps cryptsetup alsa-utils
-    
+
     ;; networking
-    iw iproute wicd links wpa-supplicant dbus connman
-    vpnc openconnect openssl lsh
-    
+    iw iproute links wpa-supplicant dbus
+    ;;connman
+    vpnc openconnect openssl
+    ;;lsh
+
     ;; minimal Xorg
     ;; slim xrandr xterm my-dwm slock
-    
+
     ;; mail
-    mutt mu gnutls isync
+    ;; mutt mu gnutls isync
 
     ;; web
     ;; icecat
     wget curl
-    
+
     ;; enlightenment
     ;; terminology enlightenment
 
     ;; xfce
     ;; xfce
 
+    ;; if not system-wide, can't be use for login session
+    i3-wm
     ;; other X stuff
     ;; synergy
     ;; multimedia
@@ -99,28 +99,21 @@
     ;; mpv
 
     ;; development
-    git magit subversion cvs rcs quilt patchutils patch gcc-toolchain-4.9 gnu-make
-    automake autoconf gdb
-    strace ltrace
-    the-silver-searcher
-    global
-
+    ;; git magit subversion cvs rcs patchutils
+    ;; gcc-toolchain-4.9 gnu-make
+    ;; automake autoconf gdb
+    ;; strace ltrace
+    ;; the-silver-searcher
+    ;; global
     ;; console
     htop mc
     ;; not packaged yet
     ;; cmus cscope ctags
     )
    %base-packages))
- (services
-  (append
-   (list
-    (lsh-service #:port-number 22 #:root-login? #t #:initialize? #t)
-    (slim-service #:default-user "tcech" #:auto-login? #t)
-    (wicd-service)
-    (dbus-service (list wpa-supplicant wicd connman))
-    (mingetty-service "ttyS0"
-		      #:motd (text-file "motd" "
-This is the GNU operating system, welcome!\n\n")))
-   %base-services))
- (kernel linux-vanilla)
- )
+ (services (cons* (gnome-desktop-service)
+                  (xfce-desktop-service)
+                  %desktop-services))
+ (name-service-switch %mdns-host-lookup-nss)
+ (kernel linux-x1-sw1)
+ (initrd-modules '()))
