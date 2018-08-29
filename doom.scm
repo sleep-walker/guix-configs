@@ -1,18 +1,82 @@
 ;; my work notebook
 (use-modules (gnu)
+             (gnu packages base) ;; for canonical-package
 	     (gnu system)
              (gnu system linux-initrd)
-	     (guix store))
+             (guix gexp)
+	     (guix store)
+             (srfi srfi-1))
 
 (use-package-modules
- wm linux-vanilla bootloaders certs admin autotools avahi base bash
-code commencement cryptsetup connman curl emacs enlightenment gdb glib
-tls gnuzilla gnome web-browsers linux ssh mail mc patchutils
-display-managers synergy texinfo version-control video wget xfce xorg
-suckless avahi xorg vpn)
-(use-service-modules
- avahi base networking ssh xorg desktop)
+ admin
+ autotools
+ avahi
+ avahi
+ base
+ bash
+ bootloaders
+ certs
+ code
+ commencement
+ connman
+ cryptsetup
+ curl
+ display-managers
+ emacs
+ enlightenment
+ gdb
+ glib
+ gnome
+ gnuzilla
+ linux
+ linux-vanilla
+ mail
+ mc
+ ncdu
+ nfs
+ patchutils
+ shells
+ ssh
+ suckless
+ synergy
+ texinfo
+ tls
+ version-control
+ video
+ vpn
+ web-browsers
+ wget
+ wm
+ xfce
+ xorg
+ xorg
+)
 
+(use-service-modules
+ avahi
+ base
+ desktop
+ mcron
+ networking
+ ssh
+ xorg
+)
+
+(define personal-mail-sync-job
+  #~(job "*/5 * * * *" "/home/tcech/bin/stahni_postu.sh"
+         #:user "tcech"))
+
+;; for special-files-service-type
+(define-syntax module-package
+  (syntax-rules ()
+    ((_ module (package output))
+     (list (@ module package) output))
+    ((_ module package)
+     (@ module package))))
+
+(define-syntax-rule (guix-package module-part package)
+  "Return PACKAGE from (gnu packages MODULE-PART) module."
+  (module-package (gnu packages module-part) package))
 
 (operating-system
  (host-name "doom")
@@ -47,6 +111,7 @@ suckless avahi xorg vpn)
                                        "audio" "video"))
 	       (comment "Tomáš Čech")
 	       (password "password")
+               (shell (file-append zsh "/bin/zsh"))
 	       (home-directory "/home/tcech"))
               %base-user-accounts))
 
@@ -59,21 +124,55 @@ suckless avahi xorg vpn)
     grub nss-mdns procps cryptsetup alsa-utils
 
     ;;;; networking ;;;;
-    iw iproute links wpa-supplicant dbus
+    iptables links wpa-supplicant dbus
     ;; connman
     vpnc openconnect openssl ;; for config in /etc
-
+    network-manager network-manager-openvpn openvpn
+    zsh ;; better shell as login shell
     ;;;;; other ;;;;;
+    nfs-utils btrfs-progs ;; programs required by filesystems
     slock ;; required here because of setuid bit
     xrandr ;; for monitor udev rule hook
     wget curl ;; default web access from scripts or command line
     i3-wm ;; if not system-wide, can't be use for login session
     htop mc ncdu ;; basic system tools
+
+    bluez
     )
    %base-packages))
- (services (cons* (gnome-desktop-service)
-                  (xfce-desktop-service)
-                  %desktop-services))
+ (services
+  (cons* (gnome-desktop-service)
+         (xfce-desktop-service)
+         (bluetooth-service)
+         (mcron-service (list personal-mail-sync-job))
+         ;; Using 'canonical-package' as bash and coreutils
+         ;; canonical packages are already a part of
+         ;; '%base-packages'.
+         (service special-files-service-type
+                  `(("/bin/sh"
+                     ,(file-append (canonical-package
+                                    (guix-package bash bash))
+                                   "/bin/bash"))
+                    ("/bin/bash"
+                     ,(file-append (canonical-package
+                                    (guix-package bash bash))
+                                   "/bin/bash"))
+                    ("/usr/bin/env"
+                     ,(file-append (canonical-package
+                                    (guix-package base coreutils))
+                                   "/bin/env"))))
+         (modify-services %desktop-services
+                          (elogind-service-type config =>
+                                                (elogind-configuration
+                                                 (handle-lid-switch 'ignore)
+                                                 (lid-switch-ignore-inhibited? #f))))))
+ (sudoers-file
+  (plain-file "sudoers"
+              "root ALL=(ALL) ALL
+%wheel ALL=(ALL) ALL
+tcech ALL = NOPASSWD: /usr/local/bin/local_suspend.sh
+"))
+
  (name-service-switch %mdns-host-lookup-nss)
- (kernel linux-x1-sw1)
+ (kernel linux-doom)
  (initrd-modules '()))

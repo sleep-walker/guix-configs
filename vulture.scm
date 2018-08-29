@@ -2,16 +2,56 @@
 (use-modules (gnu)
 	     (gnu system)
              (gnu system linux-initrd)
-	     (guix store))
+             (guix gexp)
+	     (guix store)
+             (srfi srfi-1))
 
 (use-package-modules
- wm linux-vanilla bootloaders certs admin autotools avahi base bash
-code commencement cryptsetup connman curl emacs enlightenment gdb glib
-tls gnuzilla gnome web-browsers linux ssh mail mc patchutils
-display-managers synergy texinfo version-control video wget xfce xorg
-suckless avahi xorg vpn)
+ admin
+ autotools
+ avahi
+ base
+ bash
+ bootloaders
+ certs
+ code
+ commencement
+ connman
+ cryptsetup
+ curl
+ display-managers
+ emacs
+ enlightenment
+ gdb
+ glib
+ gnome
+ gnuzilla
+ linux
+ linux-vanilla
+ mail
+ mc
+ patchutils
+ ssh
+ suckless
+ synergy
+ texinfo
+ tls
+ version-control
+ video
+ vpn
+ web-browsers
+ wget
+ wm
+ xfce
+ xorg)
+
 (use-service-modules
- avahi base networking ssh xorg desktop)
+ avahi
+ base
+ desktop
+ networking
+ ssh
+ xorg)
 
 
 (operating-system
@@ -66,7 +106,23 @@ suckless avahi xorg vpn)
    %base-packages))
  (services (cons* (gnome-desktop-service)
                   (xfce-desktop-service)
+                  ;; Using 'canonical-package' as bash and coreutils
+                  ;; canonical packages are already a part of
+                  ;; '%base-packages'.
+                  (service special-files-service-type
+                           `(("/bin/sh"
+                              ,(file-append (canonical-package
+                                             (guix-package bash bash))
+                                            "/bin/bash"))
+                             ("/bin/bash"
+                              ,(file-append (canonical-package
+                                             (guix-package bash bash))
+                                            "/bin/bash"))
+                             ("/usr/bin/env"
+                              ,(file-append (canonical-package
+                                             (guix-package base coreutils))
+                                            "/bin/env"))))
                   %desktop-services))
  (name-service-switch %mdns-host-lookup-nss)
- (kernel linux-vanilla)
+ (kernel linux-vulture)
  (initrd-modules '()))
