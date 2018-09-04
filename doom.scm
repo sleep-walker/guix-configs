@@ -62,6 +62,12 @@
  xorg
 )
 
+
+(define monitorplug-udev-rules
+  (file->udev-rule
+   "98-monitor-hotplug.rules"
+   (local-file "./doom-monitor-hotplug.rules")))
+
 (define personal-mail-sync-job
   #~(job "*/5 * * * *" "/home/tcech/bin/stahni_postu.sh"
          #:user "tcech"))
@@ -96,7 +102,7 @@
          (type luks-device-mapping))))
 ;; root filesystem
  (file-systems (append (list (file-system
-                              (title 'device)
+;;                              (title 'device)
                               (device "/dev/mapper/guix-root")
                               (mount-point "/")
                               (type "ext4")
@@ -165,7 +171,13 @@
                           (elogind-service-type config =>
                                                 (elogind-configuration
                                                  (handle-lid-switch 'ignore)
-                                                 (lid-switch-ignore-inhibited? #f))))))
+                                                 (lid-switch-ignore-inhibited? #f)))
+                          (udev-service-type config =>
+                                             (udev-configuration
+                                              (inherit config)
+                                              (rules (cons*
+                                                      monitorplug-udev-rules (udev-configuration-rules config))))))))
+ 
  (sudoers-file
   (plain-file "sudoers"
               "root ALL=(ALL) ALL
