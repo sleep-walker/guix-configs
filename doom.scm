@@ -35,6 +35,7 @@
  ncdu
  nfs
  patchutils
+ pulseaudio
  shells
  ssh
  suckless
@@ -113,7 +114,7 @@
  (users (cons (user-account
                (name "tcech")
 	       (uid 1000) (group "users")
-               (supplementary-groups '("wheel" "netdev"
+               (supplementary-groups '("lp" "wheel" "netdev"
                                        "audio" "video"))
 	       (comment "Tomáš Čech")
 	       (password "password")
@@ -143,6 +144,7 @@
     i3-wm ;; if not system-wide, can't be use for login session
     htop mc ncdu ;; basic system tools
 
+    pulseaudio
     bluez
     )
    %base-packages))
@@ -183,6 +185,7 @@
               "root ALL=(ALL) ALL
 %wheel ALL=(ALL) ALL
 tcech ALL = NOPASSWD: /usr/local/bin/local_suspend.sh
+tcech ALL = NOPASSWD: /usr/local/bin/brightness.sh
 "))
 
  (name-service-switch %mdns-host-lookup-nss)
