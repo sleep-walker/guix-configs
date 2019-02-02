@@ -28,6 +28,7 @@
  glib
  gnome
  gnuzilla
+ guile-xyz
  linux
  linux-vanilla
  mail
@@ -152,7 +153,8 @@
   (cons* (gnome-desktop-service)
          (xfce-desktop-service)
          (bluetooth-service)
-         (mcron-service (list personal-mail-sync-job))
+         (service mcron-service-type
+                  (mcron-configuration (mcron mcron) (jobs (list personal-mail-sync-job))))
          ;; Using 'canonical-package' as bash and coreutils
          ;; canonical packages are already a part of
          ;; '%base-packages'.
