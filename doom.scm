@@ -58,6 +58,7 @@
  avahi
  base
  desktop
+ docker
  mcron
  networking
  ssh
@@ -116,7 +117,7 @@
                (name "tcech")
 	       (uid 1000) (group "users")
                (supplementary-groups '("lp" "wheel" "netdev"
-                                       "audio" "video"))
+                                       "audio" "video" "docker"))
 	       (comment "Tomáš Čech")
 	       (password "password")
                (shell (file-append zsh "/bin/zsh"))
@@ -153,6 +154,7 @@
   (cons* (gnome-desktop-service)
          (xfce-desktop-service)
          (bluetooth-service)
+         (service docker-service-type)
          (service mcron-service-type
                   (mcron-configuration (mcron mcron) (jobs (list personal-mail-sync-job))))
          ;; Using 'canonical-package' as bash and coreutils
