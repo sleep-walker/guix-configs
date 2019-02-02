@@ -88,7 +88,7 @@
 (operating-system
  (host-name "doom")
  (timezone "Europe/Prague")
- (locale "cs_CZ.utf8")
+ (locale "cs_CZ.UTF-8")
 ;; prepare configuration but don't install bootloader
  (bootloader
   (bootloader-configuration
@@ -98,19 +98,19 @@
 ;; luks root mapping
  (mapped-devices
   (list (mapped-device
-         (source (uuid "0455fc07-8df6-4752-aa9b-70a04c573568"))
-         (target "guix-root")
+         (source (uuid "627480b1-0aaa-4711-a922-162b91798360"))
+         (target "cr_guix")
          (type luks-device-mapping))))
 ;; root filesystem
  (file-systems (append (list (file-system
 ;;                              (title 'device)
-                              (device "/dev/mapper/guix-root")
+                              (device "/dev/mapper/cr_guix")
                               (mount-point "/")
                               (type "ext4")
                               (dependencies mapped-devices)
                               (needed-for-boot? #t)))
                        %base-file-systems))
- (swap-devices '("/dev/nvme0n1p3"))
+ (swap-devices '("/dev/nvme0n1p2"))
  (users (cons (user-account
                (name "tcech")
 	       (uid 1000) (group "users")
