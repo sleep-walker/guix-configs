@@ -34,6 +34,7 @@
  mail
  mc
  ncdu
+ networking
  nfs
  patchutils
  pulseaudio
@@ -136,7 +137,7 @@
     iptables links wpa-supplicant dbus
     ;; connman
     vpnc openconnect openssl ;; for config in /etc
-    network-manager network-manager-openvpn openvpn
+    network-manager network-manager-openvpn network-manager-l2tp openvpn xl2tpd strongswan
     zsh ;; better shell as login shell
     ;;;;; other ;;;;;
     nfs-utils btrfs-progs ;; programs required by filesystems
@@ -157,6 +158,11 @@
          (service docker-service-type)
          (service mcron-service-type
                   (mcron-configuration (mcron mcron) (jobs (list personal-mail-sync-job))))
+         (service openssh-service-type
+                  (openssh-configuration
+                   (x11-forwarding? #t)
+                   (permit-root-login 'without-password)))
+
          ;; Using 'canonical-package' as bash and coreutils
          ;; canonical packages are already a part of
          ;; '%base-packages'.
@@ -169,6 +175,10 @@
                      ,(file-append (canonical-package
                                     (guix-package bash bash))
                                    "/bin/bash"))
+                    ("/bin/zsh"
+                     ,(file-append (canonical-package
+                                    (guix-package shells zsh))
+                                   "/bin/zsh"))
                     ("/usr/bin/env"
                      ,(file-append (canonical-package
                                     (guix-package base coreutils))
